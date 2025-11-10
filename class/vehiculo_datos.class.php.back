@@ -138,6 +138,7 @@ class Vehiculo_Datos extends CommonObject
 		"vtvitvrto" => array("type" => "varchar(128)", "label" => "VTV/ITV/RTO", "enabled" => "1", 'position' => 65, 'notnull' => 1, "visible" => "1", "searchall" => "1",),
 		"tituloautomotriz" => array("type" => "varchar(128)", "label" => "Titulo Automotriz", "enabled" => "1", 'position' => 67, 'notnull' => 1, "visible" => "1", "searchall" => "1",),
 		"certificacionsat" => array("type" => "varchar(128)", "label" => "Certificacion Sat", "enabled" => "1", 'position' => 69, 'notnull' => 1, "visible" => "1", "searchall" => "1",),
+		"fechavencevtv" => array("type" => "date", "label" => "Fecha Vence VTV", "enabled" => "1", 'position' => 66, 'notnull' => 1, "visible" => "1", "searchall" => "1",),
 	);
 	public $rowid;
 	public $fk_datos;
@@ -151,6 +152,7 @@ class Vehiculo_Datos extends CommonObject
 	public $vtvitvrto;
 	public $tituloautomotriz;
 	public $certificacionsat;
+	public $fechavencevtv;
 	// END MODULEBUILDER PROPERTIES
 
 

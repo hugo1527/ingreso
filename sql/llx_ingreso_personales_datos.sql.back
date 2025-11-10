@@ -31,6 +31,7 @@ CREATE TABLE llx_ingreso_personales_datos(
 	contract_holder varchar(128) NOT NULL, 
 	ap varchar(128) NOT NULL, 
 	denunciation varchar(128), 
-	pnr varchar(128) NOT NULL
+	pnr varchar(128) NOT NULL, 
+	fechavencelc date NOT NULL
 	-- END MODULEBUILDER FIELDS
 ) ENGINE=innodb;

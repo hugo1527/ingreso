@@ -27,6 +27,7 @@ CREATE TABLE llx_ingreso_vehiculo_datos(
 	poliza varchar(128) NOT NULL, 
 	vtvitvrto varchar(128) NOT NULL, 
 	tituloautomotriz varchar(128) NOT NULL, 
-	certificacionsat varchar(128) NOT NULL
+	certificacionsat varchar(128) NOT NULL, 
+	fechavencevtv date NOT NULL
 	-- END MODULEBUILDER FIELDS
 ) ENGINE=innodb;

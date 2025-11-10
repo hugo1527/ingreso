@@ -141,6 +141,7 @@ class Personales_Datos extends CommonObject
 		"ap" => array("type" => "varchar(128)", "label" => "AP", "enabled" => "1", 'position' => 53, 'notnull' => 1, "visible" => "1", "searchall" => "1",),
 		"denunciation" => array("type" => "varchar(128)", "label" => "Denuncia", "enabled" => "1", 'position' => 55, 'notnull' => 0, "visible" => "1", "searchall" => "1",),
 		"pnr" => array("type" => "varchar(128)", "label" => "PNR", "enabled" => "1", 'position' => 57, 'notnull' => 1, "visible" => "1", "searchall" => "1",),
+		"fechavencelc" => array("type" => "date", "label" => "Fecha Vence LC", "enabled" => "1", 'position' => 46, 'notnull' => 1, "visible" => "1", "searchall" => "1",),
 	);
 	public $rowid;
 	public $fk_datos;
@@ -158,6 +159,7 @@ class Personales_Datos extends CommonObject
 	public $ap;
 	public $denunciation;
 	public $pnr;
+	public $fechavencelc;
 	// END MODULEBUILDER PROPERTIES
 
 

@@ -1,0 +1,284 @@
+<?php
+/**
+ * Script de Tarea Programada (Cron) para el módulo Ingreso
+ *
+ * Revisa vencimientos de 'personales_datos' (LC) y 'vehiculo_datos' (VTV)
+ * y envía notificaciones por email y crea eventos de agenda.
+ */
+
+// Cargar entorno de Dolibarr
+// Ajusta la ruta si es necesario; esta ruta asume que está en /htdocs/custom/ingreso/scripts/
+$res = @include '../../main.inc.php'; // Cargar entorno desde htdocs/
+if (!$res) {
+    $res = @include '../../../main.inc.php'; // Cargar entorno desde htdocs/custom/
+}
+if (!$res) {
+    die("Error: No se pudo cargar main.inc.php");
+}
+
+class IngresoScheduledTasks
+{
+    private $db;
+    private $conf;
+    private $langs;
+    private $admin_user; // Usuario admin para ejecutar las acciones
+
+    public function __construct($db, $conf, $langs)
+    {
+        $this->db = $db;
+        $this->conf = $conf;
+        $this->langs = $langs;
+        $this->langs->load("ingreso@ingreso");
+        $this->langs->load("agenda");
+    }
+
+    /**
+     * Carga un usuario administrador para tener permisos de ejecución
+     */
+    private function loadAdminUser()
+    {
+        global $user;
+        
+        // Buscamos el primer usuario superadmin (usualmente login 'admin', rowid 1)
+        // Es mejor si configuras un ID de usuario específico
+        $admin_login = !empty($this->conf->global->MAIN_SUPERADMIN) ? $this->conf->global->MAIN_SUPERADMIN : 'admin';
+        $this->admin_user = new User($this->db);
+        if ($this->admin_user->fetch('', $admin_login) <= 0) {
+             if ($this->admin_user->fetch(1) <= 0) { // Fallback al rowid 1
+                dol_syslog("Cron Ingreso: No se pudo cargar el usuario admin '$admin_login' ni el ID 1.", LOG_ERR);
+                return false;
+             }
+        }
+        
+        // Si el script se ejecuta desde CLI, el $user global no está seteado.
+        if (empty($user) || empty($user->id)) {
+			$user = $this->admin_user;
+		}
+
+        dol_syslog("Cron Ingreso: Cargado usuario admin: " . $this->admin_user->login, LOG_DEBUG);
+        return true;
+    }
+
+    /**
+     * Punto de entrada principal para el cron
+     */
+    public function checkAllExpirations()
+    {
+        global $user; // $user global debe estar seteado
+
+        if (!$this->loadAdminUser()) {
+            return -1; // Error
+        }
+
+        dol_syslog("Cron Ingreso: Iniciando checkAllExpirations...", LOG_INFO);
+
+        // Cargar clases necesarias
+        dol_include_once('/comm/action/class/actioncomm.class.php'); // Para Agenda
+        dol_include_once('/core/class/dolmail.class.php'); // Para Email
+        dol_include_once('/custom/ingreso/class/datos.class.php');
+        dol_include_once('/custom/ingreso/class/personales_datos.class.php');
+        dol_include_once('/custom/ingreso/class/vehiculo_datos.class.php');
+
+        // --- 1. Procesar Licencias de Conducir (personales_datos) ---
+        $this->processPersonalDatos();
+
+        // --- 2. Procesar VTV (vehiculo_datos) ---
+        $this->processVehiculoDatos();
+
+        dol_syslog("Cron Ingreso: checkAllExpirations completado.", LOG_INFO);
+        return 0; // Éxito
+    }
+
+    /**
+     * Procesa vencimientos de 'personales_datos' (fechavencelc)
+     */
+    private function processPersonalDatos()
+    {
+        $today = dol_print_date(dol_now(), '%Y-%m-%d');
+        $date_7_days = dol_print_date(dol_now() + (7 * 24 * 60 * 60), '%Y-%m-%d');
+        
+        $table = "llx_ingreso_personales_datos";
+        $date_field = "fechavencelc";
+        $obj_type = "Licencia de Conducir (LC)";
+        $element_type = "personales_datos"; // Para el evento de agenda
+
+        // Query: 7 días antes
+        $sql_7 = $this->getBaseQuery($table, $date_field, "= '{$date_7_days}'", "notified_7day");
+        $this->runQuery($sql_7, "notified_7day", $obj_type, $element_type, "Aviso 7 días: Vencimiento de $obj_type");
+
+        // Query: Hoy
+        $sql_today = $this->getBaseQuery($table, $date_field, "= '{$today}'", "notified_today");
+        $this->runQuery($sql_today, "notified_today", $obj_type, $element_type, "HOY: Vencimiento de $obj_type");
+
+        // Query: Vencidos
+        $sql_past = $this->getBaseQuery($table, $date_field, "< '{$today}'", "notified_past");
+        $this->runQuery($sql_past, "notified_past", $obj_type, $element_type, "VENCIDO: $obj_type");
+    }
+
+    /**
+     * Procesa vencimientos de 'vehiculo_datos' (fechavencevtv)
+     */
+    private function processVehiculoDatos()
+    {
+        $today = dol_print_date(dol_now(), '%Y-%m-%d');
+        $date_7_days = dol_print_date(dol_now() + (7 * 24 * 60 * 60), '%Y-%m-%d');
+
+        $table = "llx_ingreso_vehiculo_datos";
+        $date_field = "fechavencevtv";
+        $obj_type = "VTV/RTO";
+        $element_type = "vehiculo_datos"; // Para el evento de agenda
+
+        // Query: 7 días antes
+        $sql_7 = $this->getBaseQuery($table, $date_field, "= '{$date_7_days}'", "notified_7day");
+        $this->runQuery($sql_7, "notified_7day", $obj_type, $element_type, "Aviso 7 días: Vencimiento de $obj_type");
+
+        // Query: Hoy
+        $sql_today = $this->getBaseQuery($table, $date_field, "= '{$today}'", "notified_today");
+        $this->runQuery($sql_today, "notified_today", $obj_type, $element_type, "HOY: Vencimiento de $obj_type");
+
+        // Query: Vencidos
+        $sql_past = $this->getBaseQuery($table, $date_field, "< '{$today}'", "notified_past");
+        $this->runQuery($sql_past, "notified_past", $obj_type, $element_type, "VENCIDO: $obj_type");
+    }
+
+    /**
+     * Construye la consulta SQL base
+     */
+    private function getBaseQuery($table, $date_field, $date_condition, $notified_field)
+    {
+        $sql = "SELECT t.rowid, t.fk_datos, t.$date_field as fecha_vencimiento, d.apellido, d.nombre, d.mail, d.ref as parent_ref";
+        $sql .= " FROM ".MAIN_DB_PREFIX.$table." as t";
+        $sql .= " LEFT JOIN ".MAIN_DB_PREFIX."ingreso_datos as d ON t.fk_datos = d.rowid";
+        $sql .= " WHERE t.$date_field $date_condition";
+        $sql .= " AND (t.$notified_field IS NULL OR t.$notified_field = 0)";
+        $sql .= " AND t.status > 0"; // Solo objetos activos
+        return $sql;
+    }
+
+    /**
+     * Ejecuta la consulta y procesa los resultados
+     */
+    private function runQuery($sql, $notified_field, $obj_type, $element_type, $subject_prefix)
+    {
+        $resql = $this->db->query($sql);
+        if ($resql) {
+            $num = $this->db->num_rows($resql);
+            dol_syslog("Cron Ingreso: Encontrados $num resultados para $obj_type ($notified_field)", LOG_DEBUG);
+
+            while ($obj = $this->db->fetch_object($resql)) {
+                $full_name = $obj->nombre . " " . $obj->apellido;
+                $fecha_venc_format = dol_print_date($this->db->jdate($obj->fecha_vencimiento), 'daytext');
+                
+                $subject = "$subject_prefix - $full_name (Ref: $obj->parent_ref)";
+                $body = "Hola $full_name,\n\n";
+                $body .= "Le recordamos sobre el vencimiento de su $obj_type (ID Objeto: $obj->rowid).\n";
+                $body .= "Fecha de Vencimiento: $fecha_venc_format\n\n";
+                $body .= "Saludos,\nSistema Dolibarr";
+
+                $recipient_email = $obj->mail; // Email del objeto 'datos'
+                
+                // Acción A: Notificación por Email
+                if (!empty($recipient_email) && filter_var($recipient_email, FILTER_VALIDATE_EMAIL)) {
+                    $this->sendNotificationEmail($recipient_email, $subject, $body);
+                } else {
+                    dol_syslog("Cron Ingreso: No se envió email. Email no válido o vacío para fk_datos_id: $obj->fk_datos ($recipient_email)", LOG_WARNING);
+                }
+
+                // Acción B: Evento de Agenda
+                $this->createCalendarEvent(
+                    $obj->rowid,
+                    $element_type,
+                    $obj->fecha_vencimiento,
+                    $subject
+                );
+
+                // Acción C: Marcar como notificado
+                $update_sql = "UPDATE ".MAIN_DB_PREFIX.($element_type == 'personales_datos' ? 'ingreso_personales_datos' : 'ingreso_vehiculo_datos');
+                $update_sql .= " SET $notified_field = 1";
+                $update_sql .= " WHERE rowid = " . $obj->rowid;
+                
+                $this->db->query($update_sql);
+            }
+        } else {
+            dol_syslog("Cron Ingreso: Error en SQL: " . $this->db->lasterror(), LOG_ERR);
+        }
+    }
+
+    /**
+     * Acción A: Envía email
+     */
+    private function sendNotificationEmail($recipient_email, $subject, $body)
+    {
+        $mail = new DolMail($this->db);
+        $mail->setFrom($this->conf->global->MAIN_MAIL_EMAIL_FROM, $this->conf->global->MAIN_INFO_SOCIETE_NOM);
+        $mail->setSubject($subject);
+        $mail->setBody($body);
+        $mail->AddAddress($recipient_email);
+        
+        $result = $mail->Send();
+        if ($result <= 0) {
+            dol_syslog("Cron Ingreso: Error al enviar email a $recipient_email. Error: " . $mail->error, LOG_ERR);
+        } else {
+            dol_syslog("Cron Ingreso: Email enviado a $recipient_email. Asunto: $subject", LOG_INFO);
+        }
+    }
+
+    /**
+     * Acción B: Crea evento de agenda
+     */
+    private function createCalendarEvent($object_id, $element_type, $event_date, $label)
+    {
+        global $user; // Aseguramos que use el $user global seteado (admin)
+        
+        $action = new ActionComm($this->db);
+        
+        $action->datep = $this->db->stringToTime($event_date . " 12:00:00"); // Al mediodía
+        $action->datef = $action->datep; // Evento de "todo el día" (fecha inicio = fecha fin)
+        
+        $action->type_code = 'AC_OTH'; // "Otro" (Puedes definir uno propio en Diccionarios)
+        $action->label = $label;
+        
+        // Asignar al usuario admin que ejecuta el cron
+        $action->user_assigned_id = $this->admin_user->id; 
+        $action->user_owner_id = $this->admin_user->id;
+
+        // Vincular el evento al objeto (personales_datos o vehiculo_datos)
+        $action->elementtype = $element_type;
+        $action->fk_element = $object_id;
+        
+        $result = $action->add($this->admin_user);
+        if ($result < 0) {
+            dol_syslog("Cron Ingreso: Error al crear evento de agenda: " . $action->error, LOG_ERR);
+        } else {
+            dol_syslog("Cron Ingreso: Evento de agenda creado. ID: $result, Label: $label", LOG_INFO);
+        }
+    }
+}
+
+
+// --- INICIO DE EJECUCIÓN DEL SCRIPT ---
+
+// Esta parte permite que el Programador de Tareas de Dolibarr llame al script
+$action = GETPOST('action', 'aZ09');
+
+if ($action == 'checkExpirations' && $user->admin) // Seguridad: solo admins pueden ejecutar esto
+{ 
+    $langs->load("admin"); // Cargar langs para el log
+    
+    dol_syslog("Cron Ingreso: Tarea 'checkExpirations' ejecutada manualmente o por cron.", LOG_INFO);
+    
+    $task = new IngresoScheduledTasks($db, $conf, $langs);
+    $result = $task->checkAllExpirations();
+
+    if ($result == 0) {
+        print "Tarea de Vencimientos de Ingreso ejecutada correctamente.";
+    } else {
+        print "Error durante la ejecución de la Tarea de Vencimientos de Ingreso.";
+    }
+}
+elseif (empty($action))
+{
+    // No hacer nada si se accede sin acción (ej. navegador)
+    print "Acceso no autorizado o acción no especificada.";
+    exit;
+}
