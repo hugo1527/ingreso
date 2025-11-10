@@ -128,6 +128,7 @@ class Personales_Datos extends CommonObject
 		"rowid" => array("type" => "integer", "label" => "TechnicalID", "enabled" => "1", 'position' => 1, 'notnull' => 1, "visible" => "0", "noteditable" => "1", "index" => "1", "css" => "left", "comment" => "Id"),
 		"fk_datos" => array("type" => "integer", "label" => "DatosPadre", "enabled" => "1", 'position' => 10, 'notnull' => 1, "visible" => "1",),
 		"date_creation" => array("type" => "datetime", "label" => "DateCreation", "enabled" => "1", 'position' => 500, 'notnull' => 1, "visible" => "-2",),
+		"tms" => array("type" => "timestamp", "label" => "DateModification", "enabled" => "1", 'position' => 501, 'notnull' => 0, "visible" => "0", "default" => "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP",),
 		"fk_user_creat" => array("type" => "integer:User:user/class/user.class.php", "label" => "UserAuthor", "picto" => "user", "enabled" => "1", 'position' => 510, 'notnull' => 1, "visible" => "-2", "csslist" => "tdoverflowmax150",),
 		"fk_user_modif" => array("type" => "integer:User:user/class/user.class.php", "label" => "UserModif", "picto" => "user", "enabled" => "1", 'position' => 511, 'notnull' => -1, "visible" => "-2", "csslist" => "tdoverflowmax150",),
 		"model_pdf" => array("type" => "varchar(255)", "label" => "Model pdf", "enabled" => "1", 'position' => 1010, 'notnull' => -1, "visible" => "0",),
@@ -142,10 +143,12 @@ class Personales_Datos extends CommonObject
 		"denunciation" => array("type" => "varchar(128)", "label" => "Denuncia", "enabled" => "1", 'position' => 55, 'notnull' => 0, "visible" => "1", "searchall" => "1",),
 		"pnr" => array("type" => "varchar(128)", "label" => "PNR", "enabled" => "1", 'position' => 57, 'notnull' => 1, "visible" => "1", "searchall" => "1",),
 		"fechavencelc" => array("type" => "date", "label" => "Fecha Vence LC", "enabled" => "1", 'position' => 46, 'notnull' => 1, "visible" => "1", "searchall" => "1",),
+		
 	);
 	public $rowid;
 	public $fk_datos;
 	public $date_creation;
+	public $tms;
 	public $fk_user_creat;
 	public $fk_user_modif;
 	public $model_pdf;
@@ -160,6 +163,7 @@ class Personales_Datos extends CommonObject
 	public $denunciation;
 	public $pnr;
 	public $fechavencelc;
+	
 	// END MODULEBUILDER PROPERTIES
 
 

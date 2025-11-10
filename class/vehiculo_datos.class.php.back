@@ -139,10 +139,12 @@ class Vehiculo_Datos extends CommonObject
 		"tituloautomotriz" => array("type" => "varchar(128)", "label" => "Titulo Automotriz", "enabled" => "1", 'position' => 67, 'notnull' => 1, "visible" => "1", "searchall" => "1",),
 		"certificacionsat" => array("type" => "varchar(128)", "label" => "Certificacion Sat", "enabled" => "1", 'position' => 69, 'notnull' => 1, "visible" => "1", "searchall" => "1",),
 		"fechavencevtv" => array("type" => "date", "label" => "Fecha Vence VTV", "enabled" => "1", 'position' => 66, 'notnull' => 1, "visible" => "1", "searchall" => "1",),
+		"tms" => array("type" => "timestamp", "label" => "DateModification", "enabled" => "1", 'position' => 501, 'notnull' => 0, "visible" => "0", "default" => "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP",),
 	);
 	public $rowid;
 	public $fk_datos;
 	public $date_creation;
+	public $tms;
 	public $fk_user_creat;
 	public $fk_user_modif;
 	public $model_pdf;

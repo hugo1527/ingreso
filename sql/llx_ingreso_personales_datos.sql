@@ -18,7 +18,8 @@ CREATE TABLE llx_ingreso_personales_datos(
 	-- BEGIN MODULEBUILDER FIELDS
 	rowid integer AUTO_INCREMENT PRIMARY KEY NOT NULL, 
 	fk_datos integer NOT NULL, 
-	date_creation datetime NOT NULL, 
+	date_creation datetime NOT NULL,
+	tms timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	fk_user_creat integer NOT NULL, 
 	fk_user_modif integer, 
 	model_pdf varchar(255), 
@@ -32,6 +33,6 @@ CREATE TABLE llx_ingreso_personales_datos(
 	ap varchar(128) NOT NULL, 
 	denunciation varchar(128), 
 	pnr varchar(128) NOT NULL, 
-	fechavencelc date NOT NULL
+	fechavencelc date NOT NULL, 
 	-- END MODULEBUILDER FIELDS
 ) ENGINE=innodb;

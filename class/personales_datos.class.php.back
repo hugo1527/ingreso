@@ -142,10 +142,12 @@ class Personales_Datos extends CommonObject
 		"denunciation" => array("type" => "varchar(128)", "label" => "Denuncia", "enabled" => "1", 'position' => 55, 'notnull' => 0, "visible" => "1", "searchall" => "1",),
 		"pnr" => array("type" => "varchar(128)", "label" => "PNR", "enabled" => "1", 'position' => 57, 'notnull' => 1, "visible" => "1", "searchall" => "1",),
 		"fechavencelc" => array("type" => "date", "label" => "Fecha Vence LC", "enabled" => "1", 'position' => 46, 'notnull' => 1, "visible" => "1", "searchall" => "1",),
+		"tms" => array("type" => "timestamp", "label" => "DateModification", "enabled" => "1", 'position' => 501, 'notnull' => 0, "visible" => "0", "default" => "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP",),
 	);
 	public $rowid;
 	public $fk_datos;
 	public $date_creation;
+	public $tms;
 	public $fk_user_creat;
 	public $fk_user_modif;
 	public $model_pdf;
