@@ -33,6 +33,6 @@ CREATE TABLE llx_ingreso_personales_datos(
 	ap varchar(128) NOT NULL, 
 	denunciation varchar(128), 
 	pnr varchar(128) NOT NULL, 
-	fechavencelc date NOT NULL, 
+	fechavencelc date NOT NULL 
 	-- END MODULEBUILDER FIELDS
 ) ENGINE=innodb;
