@@ -66,7 +66,8 @@ class IngresoScheduledTasks
         $this->db = $db;
         $this->conf = $conf;
         $this->langs = $langs;
-        $this->langs->loadLangs(array("ingreso@ingreso", "agenda@agenda"));
+        $this->langs->load("ingreso@ingreso");
+        $this->langs->load("agenda@agenda");
 
         if (!$this->loadAdminUser()) {
             return -1; // Error
