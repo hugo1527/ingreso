@@ -149,7 +149,7 @@ class IngresoScheduledTasks
      */
     private function getBaseQuery($table, $date_field, $date_condition, $notified_field)
     {
-        $sql = "SELECT t.rowid, t.fk_datos, t.$date_field as fecha_vencimiento, d.apellido, d.nombre, d.mail, d.ref as parent_ref";
+        $sql = "SELECT t.rowid, t.fk_datos, t.$date_field as fecha_vencimiento, d.apellido, d.nombre, d.mail, d.ref as parent_ref, d.fk_user_creat";
         $sql .= " FROM ".MAIN_DB_PREFIX.$table." as t";
         $sql .= " LEFT JOIN ".MAIN_DB_PREFIX."ingreso_datos as d ON t.fk_datos = d.rowid";
         $sql .= " WHERE t.$date_field $date_condition";
@@ -192,7 +192,8 @@ class IngresoScheduledTasks
                     $obj->rowid,
                     $element_type,
                     $obj->fecha_vencimiento,
-                    $subject
+                    $subject,
+                    $obj->fk_user_creat
                 );
 
                 // Acción C: Marcar como notificado
@@ -242,8 +243,18 @@ class IngresoScheduledTasks
         $action->label = $label;
         
         // Asignar al usuario admin que ejecuta el cron
-        $action->user_assigned_id = $this->admin_user->id; 
+        //$action->user_assigned_id = $this->admin_user->id; 
+        
         $action->user_owner_id = $this->admin_user->id;
+        // Asignar al usuario creador del registro
+        if (!empty($creator_user_id)) {
+            $action->user_assigned_id = $creator_user_id; 
+            //$action->user_owner_id = $creator_user_id;
+        } else {
+            // Si no hay creador (fallback), asigna al admin
+            $action->user_assigned_id = $this->admin_user->id; 
+            //$action->user_owner_id = $this->admin_user->id;
+        }
 
         // Vincular el evento al objeto (personales_datos o vehiculo_datos)
         $action->elementtype = $element_type;
@@ -253,7 +264,7 @@ class IngresoScheduledTasks
         if ($result < 0) {
             dol_syslog("Cron Ingreso: Error al crear evento de agenda: " . $action->error, LOG_ERR);
         } else {
-            dol_syslog("Cron Ingreso: Evento de agenda creado. ID: $result, Label: $label", LOG_INFO);
+            dol_syslog("Cron Ingreso: Evento de agenda CREADO. ID: $result, Label: $label, Owner: ".$action->user_owner_id.", Assigned: ".$action->user_assigned_id, LOG_INFO);
         }
     }
 }
