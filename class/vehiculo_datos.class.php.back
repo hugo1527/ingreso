@@ -140,6 +140,9 @@ class Vehiculo_Datos extends CommonObject
 		"tituloautomotriz" => array("type" => "varchar(128)", "label" => "Titulo Automotriz", "enabled" => "1", 'position' => 67, 'notnull' => 1, "visible" => "1", "searchall" => "1",),
 		"certificacionsat" => array("type" => "varchar(128)", "label" => "Certificacion Sat", "enabled" => "1", 'position' => 69, 'notnull' => 1, "visible" => "1", "searchall" => "1",),
 		"fechavencevtv" => array("type" => "date", "label" => "Fecha Vence VTV", "enabled" => "1", 'position' => 66, 'notnull' => 1, "visible" => "1", "searchall" => "1",),
+		"notified_7day" => array("type" => "integer", "label" => "Notified 7 Days", "enabled" => "1", 'position' => 2010, 'notnull' => 0, "visible" => "0", "default" => "0"),
+		"notified_today" => array("type" => "integer", "label" => "Notified Today", "enabled" => "1", 'position' => 2011, 'notnull' => 0, "visible" => "0", "default" => "0"),
+		"notified_past" => array("type" => "integer", "label" => "Notified Past", "enabled" => "1", 'position' => 2012, 'notnull' => 0, "visible" => "0", "default" => "0"),
 	);
 	public $rowid;
 	public $fk_datos;
@@ -155,6 +158,9 @@ class Vehiculo_Datos extends CommonObject
 	public $tituloautomotriz;
 	public $certificacionsat;
 	public $fechavencevtv;
+	public $notified_7day;
+	public $notified_today;
+	public $notified_past;
 	// END MODULEBUILDER PROPERTIES
 
 
