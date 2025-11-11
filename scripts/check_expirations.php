@@ -66,8 +66,14 @@ class IngresoScheduledTasks
         $this->db = $db;
         $this->conf = $conf;
         $this->langs = $langs;
-        //$this->langs->load("ingreso@ingreso");
-        //$this->langs->load("agenda@agenda");
+        $this->langs->load("main");
+        $this->langs->load("other");
+        $this->langs->load("ingreso@ingreso");
+        $this->langs->load("agenda");
+      // Cargar TODOS los archivos de idioma necesarios para el script
+        // 1. "main" y "other" son necesarios para dol_print_date(..., 'daytext')
+        // 2. "ingreso@ingreso" es para los textos de tu módulo (si los usaras en el email/agenda)
+        // 3. "agenda" es para los textos del módulo de agenda
 
         if (!$this->loadAdminUser()) {
             return -1; // Error
