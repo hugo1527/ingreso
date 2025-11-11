@@ -182,7 +182,7 @@ class IngresoScheduledTasks
                 $body = "Hola $full_name,\n\n";
                 $body .= "Le recordamos sobre el vencimiento de su $obj_type (ID Objeto: $obj->rowid).\n";
                 $body .= "Fecha de Vencimiento: $fecha_venc_format\n\n";
-                $body .= "Saludos,\nSistema Dolibarr";
+                $body .= "Saludos,\nSistema XOS";
 
                 $recipient_email = $obj->mail; // Email del objeto 'datos'
                 
