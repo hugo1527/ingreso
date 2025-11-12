@@ -82,11 +82,11 @@ class IngresoScheduledTasks
         dol_syslog("Cron Ingreso: Iniciando checkAllExpirations (Modo Clase PHP)...", LOG_INFO);
 
         // Cargar clases necesarias
-        dol_include_once('/comm/action/class/actioncomm.class.php'); // Para Agenda
-        dol_include_once('/core/class/dolmail.class.php'); // Para Email
-        dol_include_once('/custom/ingreso/class/datos.class.php');
-        dol_include_once('/custom/ingreso/class/personales_datos.class.php');
-        dol_include_once('/custom/ingreso/class/vehiculo_datos.class.php');
+        dol_include_once('comm/action/class/actioncomm.class.php'); // Para Agenda
+        dol_include_once('core/class/CMailFile.class.php'); // Para Email
+        dol_include_once('custom/ingreso/class/datos.class.php');
+        dol_include_once('custom/ingreso/class/personales_datos.class.php');
+        dol_include_once('custom/ingreso/class/vehiculo_datos.class.php');
 
         // --- 1. Procesar Licencias de Conducir (personales_datos) ---
         $this->processPersonalDatos();
@@ -106,7 +106,7 @@ class IngresoScheduledTasks
         $today = dol_print_date(dol_now(), '%Y-%m-%d');
         $date_7_days = dol_print_date(dol_now() + (7 * 24 * 60 * 60), '%Y-%m-%d');
         
-        $table = "llx_ingreso_personales_datos";
+        $table = "ingreso_personales_datos";
         $date_field = "fechavencelc";
         $obj_type = "Licencia de Conducir (LC)";
         $element_type = "personales_datos"; // Para el evento de agenda
@@ -132,7 +132,7 @@ class IngresoScheduledTasks
         $today = dol_print_date(dol_now(), '%Y-%m-%d');
         $date_7_days = dol_print_date(dol_now() + (7 * 24 * 60 * 60), '%Y-%m-%d');
 
-        $table = "llx_ingreso_vehiculo_datos";
+        $table = "ingreso_vehiculo_datos";
         $date_field = "fechavencevtv";
         $obj_type = "VTV/RTO";
         $element_type = "vehiculo_datos"; // Para el evento de agenda
@@ -219,15 +219,25 @@ class IngresoScheduledTasks
      */
     private function sendNotificationEmail($recipient_email, $subject, $body)
     {
-        $mail = new DolMail($this->db);
-        $mail->setFrom($this->conf->global->MAIN_MAIL_EMAIL_FROM, $this->conf->global->MAIN_INFO_SOCIETE_NOM);
-        $mail->setSubject($subject);
-        $mail->setBody($body);
-        $mail->AddAddress($recipient_email);
-        
-        $result = $mail->Send();
+        // Usar CMailFile (Dolibarr 16+)
+        $from_email = $this->conf->global->MAIN_MAIL_EMAIL_FROM;
+        $from_name = $this->conf->global->MAIN_INFO_SOCIETE_NOM;
+        // Comprobamos si la variable existe, si no, usamos el email 'from' como fallback
+        $errors_to = !empty($this->conf->global->MAIN_MAIL_ERRORS_TO) ? $this->conf->global->MAIN_MAIL_ERRORS_TO : $from_email;
+
+        // 1. Crear la instancia de CMailFile
+        // (Asunto, Destinatario, Remitente Email, Remitente Nombre, ... , Errores A)
+        $mailfile = new CMailFile($subject, $recipient_email, $from_email, $from_name, '', '', '', '', '', 0, 0, $errors_to);
+
+        // 2. Asignar el cuerpo del mensaje (como texto plano)
+        $mailfile->body = $body;
+
+        // 3. Enviar el correo
+        $result = $mailfile->sendfile(); // sendfile() se encarga de todo
+
         if ($result <= 0) {
-            dol_syslog("Cron Ingreso: Error al enviar email a $recipient_email. Error: " . $mail->error, LOG_ERR);
+            // El error se guarda en $mailfile->error
+            dol_syslog("Cron Ingreso: Error al enviar email a $recipient_email. Error: " . $mailfile->error, LOG_ERR);
         } else {
             dol_syslog("Cron Ingreso: Email enviado a $recipient_email. Asunto: $subject", LOG_INFO);
         }
@@ -242,7 +252,7 @@ class IngresoScheduledTasks
         
         $action = new ActionComm($this->db);
         
-        $action->datep = $this->db->stringToTime($event_date . " 12:00:00"); // Al mediodía
+        $action->datep = dol_stringtotime($event_date . " 12:00:00"); // Al mediodía
         $action->datef = $action->datep; // Evento de "todo el día" (fecha inicio = fecha fin)
         
         $action->type_code = 'AC_OTH'; // "Otro" (Puedes definir uno propio en Diccionarios)
@@ -266,7 +276,7 @@ class IngresoScheduledTasks
         $action->elementtype = $element_type;
         $action->fk_element = $object_id;
         
-        $result = $action->add($this->admin_user);
+        $result = $action->create($this->admin_user);
         if ($result < 0) {
             dol_syslog("Cron Ingreso: Error al crear evento de agenda: " . $action->error, LOG_ERR);
         } else {
