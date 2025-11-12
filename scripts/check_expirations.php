@@ -258,18 +258,18 @@ class IngresoScheduledTasks
         $action->type_code = 'AC_OTH'; // "Otro" (Puedes definir uno propio en Diccionarios)
         $action->label = $label;
         
-        // --- INICIO DE CORRECCIÓN ---
+        // --- CÓDIGO CORREGIDO ---
 
-        // El propietario (owner) del evento SIEMPRE será el admin que ejecuta el cron.
-        $action->user_owner_id = $this->admin_user->id; 
+        // El propietario (owner) del evento SIEMPRE será el admin que ejecuta el cron ($user).
+        $action->user_owner_id = $user->id; 
         
         // El evento se ASIGNA al usuario que creó el registro original,
         // o al admin si ese usuario no existe.
         if (!empty($creator_user_id)) {
             $action->user_assigned_id = $creator_user_id; 
         } else {
-            // Fallback: asigna al admin
-            $action->user_assigned_id = $this->admin_user->id; 
+            // Fallback: asigna al admin ($user)
+            $action->user_assigned_id = $user->id; 
         }
         
         // --- FIN DE CORRECCIÓN ---
