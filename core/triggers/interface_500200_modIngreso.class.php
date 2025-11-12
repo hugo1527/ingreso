@@ -47,8 +47,8 @@ class interface_500200_modIngreso extends InterfaceWeb
 		// 1. Manejar 'personales_datos'
 		if ($elementtype == 'personales_datos') {
 			// --- INICIO CORRECCIÓN DE RUTA ---
-			dol_include_once('/custom/ingreso/class/personales_datos.class.php');
-			dol_include_once('/custom/ingreso/class/datos.class.php'); // Cargar el padre
+			dol_include_once('/ingreso/class/personales_datos.class.php');
+			dol_include_once('/ingreso/class/datos.class.php'); // Cargar el padre
 			// --- FIN CORRECCIÓN DE RUTA ---
 			
 			$object = new Personales_Datos($this->db);
@@ -66,8 +66,8 @@ class interface_500200_modIngreso extends InterfaceWeb
 		// 2. Manejar 'vehiculo_datos'
 		elseif ($elementtype == 'vehiculo_datos') {
 			// --- INICIO CORRECCIÓN DE RUTA ---
-			dol_include_once('/custom/ingreso/class/vehiculo_datos.class.php');
-			dol_include_once('/custom/ingreso/class/datos.class.php'); // Cargar el padre
+			dol_include_once('/ingreso/class/vehiculo_datos.class.php');
+			dol_include_once('/ingreso/class/datos.class.php'); // Cargar el padre
 			// --- FIN CORRECCIÓN DE RUTA ---
 			
 			$object = new Vehiculo_Datos($this->db);
