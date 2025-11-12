@@ -275,7 +275,7 @@ class Personales_Datos extends CommonObject
 	 */
 	public function create(User $user, $notrigger = 0)
 	{
-		global $langs;
+		global $langs; // <--- Añadir esto
 
 		// Verificar que tenga un datos padre
         if (empty($this->fk_datos)) {
@@ -288,37 +288,33 @@ class Personales_Datos extends CommonObject
 		
 		$result = $this->createCommon($user, $notrigger);
 
-		if ($result > 0) {
-            // ---- INICIO: Agregar evento de agenda ----
-            if (isModEnabled('agenda')) {
-                require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
-                $langs->load("agenda"); // Cargar lang de agenda
+		// ---- INICIO: Agregar evento de agenda ----
+		if ($result > 0 && isModEnabled('agenda')) {
+			require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
+			$langs->load("agenda"); // Cargar lang de agenda
 
-                $action = new ActionComm($this->db);
-                $action->datep = dol_now(); // Fecha del evento (ahora)
-                $action->datef = dol_now();
-                
-                $action->type_code = 'AC_OTH'; // Tipo "Otro"
-                $action->label = $langs->transnoentities("Creado").": ".$this->element." ".$this->id; // Asunto
+			$action = new ActionComm($this->db);
+			$action->datep = dol_now(); // Fecha del evento (ahora)
+			$action->datef = dol_now();
+			
+			$action->type_code = 'AC_OTH'; // Tipo "Otro"
+			
+			// Cargar datos del padre para el título
+			$datos_padre = new Datos($this->db);
+			$datos_padre->fetch($this->fk_datos);
+			$action->label = $langs->transnoentities("Personales_Datos").": ".$datos_padre->apellido.", ".$datos_padre->nombre; // Asunto
 
-                // Propietario y asignado
-                $action->user_owner_id = $user->id;
-                $action->user_assigned_id = $user->id;
+			// Propietario y asignado
+			$action->user_owner_id = $user->id;
+			$action->user_assigned_id = $user->id;
 
-                // Vincular al objeto
-                $action->elementtype = $this->element;
-                $action->fk_element = $this->id;
-                
-                $action->create($user);
-            }
-            // ---- FIN: Agregar evento de agenda ----
-
-
-			// uncomment lines below if you want to validate object after creation
-			// $this->fetch($this->id); // needed to retrieve some fields (ie date_creation for masked ref)
-			// $resultupdate = $this->validate($user, $notrigger);
-			// if ($resultupdate < 0) { return $resultupdate; }
+			// Vincular al objeto
+			$action->elementtype = $this->element;
+			$action->fk_element = $this->id;
+			
+			$action->create($user);
 		}
+		// ---- FIN: Agregar evento de agenda ----
 
 		return $result;
 	}
