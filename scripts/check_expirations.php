@@ -262,7 +262,7 @@ class IngresoScheduledTasks
 
         // El propietario (owner) del evento SIEMPRE será el admin que ejecuta el cron ($user).
         $action->user_owner_id = $user->id; 
-        
+
         // El evento se ASIGNA al usuario que creó el registro original,
         // o al admin si ese usuario no existe.
         if (!empty($creator_user_id)) {
@@ -271,7 +271,9 @@ class IngresoScheduledTasks
             // Fallback: asigna al admin ($user)
             $action->user_assigned_id = $user->id; 
         }
-        
+        // ...
+        $result = $action->create($user); // El usuario que ejecuta la acción es el admin ($user)
+                
         // --- FIN DE CORRECCIÓN ---
 
         // Vincular el evento al objeto (personales_datos o vehiculo_datos)
