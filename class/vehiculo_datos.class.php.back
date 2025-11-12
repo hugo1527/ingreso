@@ -140,9 +140,9 @@ class Vehiculo_Datos extends CommonObject
 		"tituloautomotriz" => array("type" => "varchar(128)", "label" => "Titulo Automotriz", "enabled" => "1", 'position' => 67, 'notnull' => 1, "visible" => "1", "searchall" => "1",),
 		"certificacionsat" => array("type" => "varchar(128)", "label" => "Certificacion Sat", "enabled" => "1", 'position' => 69, 'notnull' => 1, "visible" => "1", "searchall" => "1",),
 		"fechavencevtv" => array("type" => "date", "label" => "Fecha Vence VTV", "enabled" => "1", 'position' => 66, 'notnull' => 1, "visible" => "1", "searchall" => "1",),
-		"notified_7day" => array("type" => "integer", "label" => "Notified 7 Days", "enabled" => "1", 'position' => 2010, 'notnull' => 0, "visible" => "0", "default" => "0"),
-		"notified_today" => array("type" => "integer", "label" => "Notified Today", "enabled" => "1", 'position' => 2011, 'notnull' => 0, "visible" => "0", "default" => "0"),
-		"notified_past" => array("type" => "integer", "label" => "Notified Past", "enabled" => "1", 'position' => 2012, 'notnull' => 0, "visible" => "0", "default" => "0"),
+		"notified_7day" => array("type" => "integer", "label" => "Notified 7 Days", "enabled" => "1", 'position' => 2010, 'notnull' => 0, "visible" => "0", "default" => "0",),
+		"notified_today" => array("type" => "integer", "label" => "Notified Today", "enabled" => "1", 'position' => 2011, 'notnull' => 0, "visible" => "0", "default" => "0",),
+		"notified_past" => array("type" => "integer", "label" => "Notified Past", "enabled" => "1", 'position' => 2012, 'notnull' => 0, "visible" => "0", "default" => "0",),
 	);
 	public $rowid;
 	public $fk_datos;
@@ -268,6 +268,8 @@ class Vehiculo_Datos extends CommonObject
 	 */
 	public function create(User $user, $notrigger = 0)
 	{
+		global $langs; // <--- Añadir esto
+
 		// Verificar que tenga un datos padre
         if (empty($this->fk_datos)) {
             $this->error = 'MissingParentDatos';
@@ -279,12 +281,33 @@ class Vehiculo_Datos extends CommonObject
 		
 		$result = $this->createCommon($user, $notrigger);
 
-		// uncomment lines below if you want to validate object after creation
-		// if ($result > 0) {
-		// $this->fetch($this->id); // needed to retrieve some fields (ie date_creation for masked ref)
-		// $resultupdate = $this->validate($user, $notrigger);
-		// if ($resultupdate < 0) { return $resultupdate; }
-		// }
+		// ---- INICIO: Agregar evento de agenda ----
+		if ($result > 0 && isModEnabled('agenda')) {
+			require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
+			$langs->load("agenda"); // Cargar lang de agenda
+
+			$action = new ActionComm($this->db);
+			$action->datep = dol_now(); // Fecha del evento (ahora)
+			$action->datef = dol_now();
+			
+			$action->type_code = 'AC_OTH'; // Tipo "Otro"
+
+			// Cargar datos del padre para el título
+			$datos_padre = new Datos($this->db);
+			$datos_padre->fetch($this->fk_datos);
+			$action->label = $langs->transnoentities("Vehiculo_Datos").": ".$datos_padre->apellido.", ".$datos_padre->nombre." (".$this->vtvitvrto.")"; // Asunto
+
+			// Propietario y asignado
+			$action->user_owner_id = $user->id;
+			$action->user_assigned_id = $user->id;
+
+			// Vincular al objeto
+			$action->elementtype = $this->element;
+			$action->fk_element = $this->id;
+			
+			$action->create($user);
+		}
+		// ---- FIN: Agregar evento de agenda ----
 
 		return $result;
 	}

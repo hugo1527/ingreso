@@ -41,7 +41,7 @@ class interface_500200_modIngreso extends InterfaceWeb
 		$object = null;
 		$url = '';
 		// --- INICIO CORRECCIÓN DE RUTA ---
-		$dol_path = dol_buildpath('/custom/ingreso/', 1); // Ruta correcta
+		$dol_path = dol_buildpath('/ingreso/', 1); // Ruta correcta
 		// --- FIN CORRECCIÓN DE RUTA ---
 
 		// 1. Manejar 'personales_datos'

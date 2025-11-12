@@ -74,10 +74,10 @@ class IngresoScheduledTasks
         // 1. "main" y "other" son necesarios para dol_print_date(..., 'daytext')
         // 2. "ingreso@ingreso" es para los textos de tu módulo (si los usaras en el email/agenda)
         // 3. "agenda" es para los textos del módulo de agenda
-
+        /*
         if (!$this->loadAdminUser()) {
             return -1; // Error
-        }
+        }*/
 
         dol_syslog("Cron Ingreso: Iniciando checkAllExpirations (Modo Clase PHP)...", LOG_INFO);
 

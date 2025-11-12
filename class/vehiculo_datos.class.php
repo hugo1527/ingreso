@@ -266,7 +266,7 @@ class Vehiculo_Datos extends CommonObject
 	 * @param	int<0,1> 	$notrigger	0=launch triggers after, 1=disable triggers
 	 * @return	int<-1,max>				Return integer <0 if KO, Id of created object if OK
 	 */
-	public function create(User $user, $notrigger = 0)
+	public function create($user_param, $notrigger = 0)
 	{
 		global $langs; // <--- Añadir esto
 
@@ -279,7 +279,7 @@ class Vehiculo_Datos extends CommonObject
         $this->table_element = 'ingreso_vehiculo_datos';
         $this->element = 'vehiculo_datos'; 
 		
-		$result = $this->createCommon($user, $notrigger);
+		$result = $this->createCommon($user_param, $notrigger);
 
 		// ---- INICIO: Agregar evento de agenda ----
 		if ($result > 0 && isModEnabled('agenda')) {

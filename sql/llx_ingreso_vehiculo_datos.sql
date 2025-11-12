@@ -19,7 +19,7 @@ CREATE TABLE llx_ingreso_vehiculo_datos(
 	rowid integer AUTO_INCREMENT PRIMARY KEY NOT NULL, 
 	fk_datos integer NOT NULL, 
 	date_creation datetime NOT NULL, 
-	tms timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, 
+	tms timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, 
 	fk_user_creat integer NOT NULL, 
 	fk_user_modif integer, 
 	model_pdf varchar(255), 
