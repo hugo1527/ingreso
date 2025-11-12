@@ -246,7 +246,7 @@ class IngresoScheduledTasks
     /**
      * Acción B: Crea evento de agenda
      */
-    private function createCalendarEvent($object_id, $element_type, $event_date, $label)
+    private function createCalendarEvent($object_id, $element_type, $event_date, $label, $creator_user_id)
     {
         global $user; // Aseguramos que use el $user global seteado (admin)
         
@@ -258,25 +258,27 @@ class IngresoScheduledTasks
         $action->type_code = 'AC_OTH'; // "Otro" (Puedes definir uno propio en Diccionarios)
         $action->label = $label;
         
-        // Asignar al usuario admin que ejecuta el cron
-        //$action->user_assigned_id = $this->admin_user->id; 
+        // --- INICIO DE CORRECCIÓN ---
+
+        // El propietario (owner) del evento SIEMPRE será el admin que ejecuta el cron.
+        $action->user_owner_id = $this->admin_user->id; 
         
-        $action->user_owner_id = $this->admin_user->id;
-        // Asignar al usuario creador del registro
+        // El evento se ASIGNA al usuario que creó el registro original,
+        // o al admin si ese usuario no existe.
         if (!empty($creator_user_id)) {
             $action->user_assigned_id = $creator_user_id; 
-            //$action->user_owner_id = $creator_user_id;
         } else {
-            // Si no hay creador (fallback), asigna al admin
+            // Fallback: asigna al admin
             $action->user_assigned_id = $this->admin_user->id; 
-            //$action->user_owner_id = $this->admin_user->id;
         }
+        
+        // --- FIN DE CORRECCIÓN ---
 
         // Vincular el evento al objeto (personales_datos o vehiculo_datos)
         $action->elementtype = $element_type;
         $action->fk_element = $object_id;
         
-        $result = $action->create($this->admin_user);
+        $result = $action->create($this->admin_user); // El usuario que ejecuta la acción es el admin
         if ($result < 0) {
             dol_syslog("Cron Ingreso: Error al crear evento de agenda: " . $action->error, LOG_ERR);
         } else {

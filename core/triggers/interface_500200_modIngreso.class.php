@@ -40,12 +40,16 @@ class interface_500200_modIngreso extends InterfaceWeb
 
 		$object = null;
 		$url = '';
-		$dol_path = dol_buildpath('/custom/ingreso/', 1); // Ya que está en /custom/
+		// --- INICIO CORRECCIÓN DE RUTA ---
+		$dol_path = dol_buildpath('/custom/ingreso/', 1); // Ruta correcta
+		// --- FIN CORRECCIÓN DE RUTA ---
 
 		// 1. Manejar 'personales_datos'
 		if ($elementtype == 'personales_datos') {
+			// --- INICIO CORRECCIÓN DE RUTA ---
 			dol_include_once('/custom/ingreso/class/personales_datos.class.php');
 			dol_include_once('/custom/ingreso/class/datos.class.php'); // Cargar el padre
+			// --- FIN CORRECCIÓN DE RUTA ---
 			
 			$object = new Personales_Datos($this->db);
 			$object->fetch($fk_element);
@@ -61,8 +65,10 @@ class interface_500200_modIngreso extends InterfaceWeb
 		}
 		// 2. Manejar 'vehiculo_datos'
 		elseif ($elementtype == 'vehiculo_datos') {
+			// --- INICIO CORRECCIÓN DE RUTA ---
 			dol_include_once('/custom/ingreso/class/vehiculo_datos.class.php');
 			dol_include_once('/custom/ingreso/class/datos.class.php'); // Cargar el padre
+			// --- FIN CORRECCIÓN DE RUTA ---
 			
 			$object = new Vehiculo_Datos($this->db);
 			$object->fetch($fk_element);
